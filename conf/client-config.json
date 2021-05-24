@@ -1,0 +1,9 @@
+{
+  "protocol" : null,
+  "host" : "localhost",
+  "port" : "7612",
+  "sslPort" : "7712",
+  "username" : "admin",
+  "password" : "admin",
+  "eventDelay" : "50"
+}
