@@ -1,9 +1,9 @@
 {
   "protocol" : null,
-  "host" : "localhost",
-  "port" : "7612",
-  "sslPort" : "7712",
+  "reciverURL" : "{tcp://localhost:7612/,tcp://localhost:7613/}",
+  "authURL" : "{ssl://localhost:7712/,ssl://localhost:7713/}",
   "username" : "admin",
   "password" : "admin",
-  "eventDelay" : "50"
+  "eventsPerSec" : "10",
+  "repeatCombination" : "2"
 }
