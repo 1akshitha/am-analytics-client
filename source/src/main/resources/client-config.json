@@ -1,9 +1,11 @@
 {
   "protocol" : null,
-  "host" : "localhost",
-  "port" : "7612",
-  "sslPort" : "7712",
+  "reciverURL" : "tcp://localhost:7612",
+  "authURL" : "ssl://localhost:7712",
   "username" : "admin",
   "password" : "admin",
-  "eventDelay" : "0"
+  "eventsPerSec" : "0",
+  "repeatCombination" : "0",
+  "hostGroup" : "[\"tcp://172.31.10.70:7611\",\"tcp://172.31.9.207:7611\"]",
+  "sslGroup" : "[\"ssl://172.31.10.70:7711\",\"ssl://172.31.9.207:7711\"]"
 }

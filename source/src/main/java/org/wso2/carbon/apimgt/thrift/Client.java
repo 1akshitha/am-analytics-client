@@ -36,8 +36,12 @@ import org.wso2.carbon.databridge.commons.exception.TransportException;
 import org.wso2.carbon.databridge.commons.utils.DataBridgeCommonsUtils;
 
 import java.io.FileReader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * WSO2 API Manager Analytics - Event Client
@@ -48,12 +52,17 @@ public class Client {
 
     private static final String REQUEST_RESPONSE_STREAM_NAME = "org.wso2.apimgt.statistics.request";
     private static final String VERSION = "3.0.0";
-    private static final String agentConfigFileName = "data-agent-config.xml";
+    private static final String agentConfigFileName = "data.agent.config.yaml";
     private static final String eventDataFileName = "event-data.json";
     private static final String clientConfigFileName = "client-config.json";
     private static DataPublisher dataPublisher;
-    private static int eventDelay = 0;
-    private static int eventCount = 0;
+    private static int eventsPerSec = 0;
+    private static int totalEventCount = 0;
+    private static int eventPerSecond = 0;
+    private static long firstTimestamp = 0L;
+    private static ScheduledExecutorService scheduledExecutorService;
+    private static int j = 0;
+    private static int repeatCombination = 0;
 
     public static void main(String[] args) {
 
@@ -73,7 +82,9 @@ public class Client {
             JSONObject optionsObject = readJsonFile(eventDataFileName);
             JSONObject currentObject = new JSONObject();
             JSONArray resultsArray = new JSONArray();
-
+            firstTimestamp = Instant.now().getEpochSecond();
+            scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+            scheduledExecutorService.scheduleWithFixedDelay(new tpsLogger(), 1, 1, TimeUnit.MINUTES);
             publishCombinations(optionsObject, 0, resultsArray, currentObject);
             log.info("Events published successfully. Publisher will shutdown now");
             try {
@@ -94,21 +105,20 @@ public class Client {
             DataEndpointException, DataEndpointConfigurationException {
 
         String protocol = null;
-        String host = (String) configObject.get("host");
-        String port = (String) configObject.get("port");
-        String sslPort = (String) configObject.get("sslPort");
+        String receiverURL = (String) configObject.get("receiverURL");
+        String authURL = (String) configObject.get("authURL");
         String username = (String) configObject.get("username");
         String password = (String) configObject.get("password");
 
         AgentHolder.setConfigPath(DataPublisherUtil.getConfFilePath(agentConfigFileName));
-        dataPublisher = new DataPublisher(protocol, "tcp://" + host + ":" + port,
-                "ssl://" + host + ":" + sslPort, username, password);
+        dataPublisher = new DataPublisher(protocol, receiverURL, authURL, username, password);
 
-        eventDelay = Integer.parseInt((String) configObject.get("eventDelay"));
+        eventsPerSec = Integer.parseInt((String) configObject.get("eventsPerSec"));
+        repeatCombination = Integer.parseInt((String) configObject.get("repeatCombination"));
     }
 
     private static void publishToServer(JSONObject dataObject) {
-
+        j++;
         RequestResponseStreamDTO requestStream = new RequestResponseStreamDTO();
         requestStream.setUsername((String) dataObject.get("Username"));
         requestStream.setUserTenantDomain((String) dataObject.get("UserTenantDomain"));
@@ -160,13 +170,15 @@ public class Client {
         dataPublisher.tryPublish(streamId, System.currentTimeMillis(),
                 (Object[]) dataBridgeRequestPublisherDTO.createMetaData(), null,
                 (Object[]) dataBridgeRequestPublisherDTO.createPayload());
-        eventCount = eventCount + 1;
-        try {
-            Thread.sleep(eventDelay);
-        } catch (InterruptedException e) {
-            log.error(e);
+        totalEventCount = totalEventCount + 1;
+        eventPerSecond = eventPerSecond + 1;
+        if (j % eventsPerSec == 0) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.error(e);
+            }
         }
-        log.info("Event published to analytics server. Event count = " + eventCount);
     }
 
     private static JSONArray publishCombinations(JSONObject options, int optionIndex, JSONArray results,
@@ -176,14 +188,15 @@ public class Client {
         String optionKey = allKeys[optionIndex];
 
         JSONArray vals = (JSONArray) options.get(optionKey);
-
         for (int i = 0; i < vals.size(); i++) {
             current.put(optionKey, vals.get(i));
             if (optionIndex + 1 < allKeys.length) {
                 publishCombinations(options, optionIndex + 1, results, current);
             } else {
                 JSONObject res = current;
-                publishToServer(res);
+                for (int j = 0; j < repeatCombination; j++) {
+                    publishToServer(res);
+                }
             }
         }
         return results;
@@ -210,5 +223,19 @@ public class Client {
             e.printStackTrace();
         }
         return eventData;
+    }
+
+    static class tpsLogger implements Runnable {
+        long secondTimestamp = 0L;
+
+        public void run() {
+
+            secondTimestamp = Instant.now().getEpochSecond();
+            log.info("TPS = \"" + eventPerSecond / (secondTimestamp - firstTimestamp) + "\" ," +
+                    " Total Event Count = " + totalEventCount);
+            firstTimestamp = secondTimestamp;
+            eventPerSecond = 0;
+
+        }
     }
 }
