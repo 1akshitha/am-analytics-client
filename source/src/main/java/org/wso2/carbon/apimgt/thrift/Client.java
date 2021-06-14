@@ -52,7 +52,6 @@ public class Client {
 
     private static final String REQUEST_RESPONSE_STREAM_NAME = "org.wso2.apimgt.statistics.request";
     private static final String VERSION = "3.0.0";
-    private static final String agentConfigFileName = "data.agent.config.yaml";
     private static final String eventDataFileName = "event-data.json";
     private static final String clientConfigFileName = "client-config.json";
     private static DataPublisher dataPublisher;
@@ -109,8 +108,9 @@ public class Client {
         String authURL = (String) configObject.get("authURL");
         String username = (String) configObject.get("username");
         String password = (String) configObject.get("password");
+        String configName = (String) configObject.get("agentConfigFileName");
 
-        AgentHolder.setConfigPath(DataPublisherUtil.getConfFilePath(agentConfigFileName));
+        AgentHolder.setConfigPath(DataPublisherUtil.getConfFilePath(configName));
         dataPublisher = new DataPublisher(protocol, receiverURL, authURL, username, password);
 
         eventsPerSec = Integer.parseInt((String) configObject.get("eventsPerSec"));
