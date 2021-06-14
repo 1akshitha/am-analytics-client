@@ -1,9 +1,11 @@
 {
   "protocol" : null,
-  "reciverURL" : "{tcp://localhost:7612/,tcp://localhost:7613/}",
-  "authURL" : "{ssl://localhost:7712/,ssl://localhost:7713/}",
+  "reciverURL" : "[\"tcp://localhost:7612\",\"tcp://localhost:7613\"]",
+  "authURL" : "[\"ssl://localhost:7712\",\"ssl://localhost:7713\"]",
   "username" : "admin",
   "password" : "admin",
   "eventsPerSec" : "10",
-  "repeatCombination" : "2"
+  "repeatCombination" : "20",
+  "hostGroup" : "[\"tcp://172.31.10.70:7611\",\"tcp://172.31.9.207:7611\"]",
+  "sslGroup" : "[\"ssl://172.31.10.70:7711\",\"ssl://172.31.9.207:7711\"]"
 }

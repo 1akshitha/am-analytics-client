@@ -252,6 +252,7 @@
                 <mainClass>org.wso2.carbon.apimgt.thrift.Client</mainClass>
               </manifest>
             </archive>
+            <outputDirectory>../plugins</outputDirectory>
           </configuration>
         </plugin>
         <plugin>
