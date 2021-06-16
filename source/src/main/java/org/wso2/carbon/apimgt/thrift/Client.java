@@ -20,6 +20,10 @@ package org.wso2.carbon.apimgt.thrift;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -48,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Client {
 
-    private static final Log log = LogFactory.getLog(Client.class);
+    private static final Logger log = LogManager.getLogger(Client.class);
 
     private static final String REQUEST_RESPONSE_STREAM_NAME = "org.wso2.apimgt.statistics.request";
     private static final String VERSION = "3.0.0";
@@ -64,6 +68,9 @@ public class Client {
     private static int repeatCombination = 0;
 
     public static void main(String[] args) {
+
+        String log4jConfigFile = DataPublisherUtil.getConfFilePath("log4j.properties");
+        PropertyConfigurator.configure(log4jConfigFile);
 
         DataPublisherUtil.setKeyStoreParams();
         DataPublisherUtil.setTrustStoreParams();
